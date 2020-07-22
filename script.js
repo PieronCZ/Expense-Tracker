@@ -6,14 +6,45 @@ const form = document.getElementById("form");
 const text = document.getElementById("text");
 const amount = document.getElementById("amount");
 
-const dummyTransactions = [
-  { id: 1, text: "Flower", amount: -20 },
-  { id: 2, text: "Salary", amount: 300 },
-  { id: 3, text: "Book", amount: -10 },
-  { id: 4, text: "Camera", amount: 150 },
-];
+// const dummyTransactions = [
+//   { id: 1, text: "Flower", amount: -20 },
+//   { id: 2, text: "Salary", amount: 300 },
+//   { id: 3, text: "Book", amount: -10 },
+//   { id: 4, text: "Camera", amount: 150 },
+// ];
 
-let transactions = dummyTransactions;
+const localStorageTransactions = JSON.parse(localStorage.getItem('transactions'));
+
+let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
+
+// Add transaction
+function addTransaction(e) {
+    e.preventDefault();
+    if(text.value.trim() === '' || amount.value.trim() === '') {
+        alert('You have to specify both amount and text');
+    } else {
+        const transaction = {
+            id: transactions.length ? transactions[transactions.length-1].id + 1:1,
+            text: text.value,
+            amount: +amount.value
+        };
+        transactions.push(transaction);
+
+        addTransactionDOM(transaction);
+        counter();
+        updateLocalStorage();
+
+        text.value = '';
+        amount.value = '';
+    }
+}
+
+// Remove transaction by ID
+function removeTransaction(id) {
+    transactions = transactions.filter(transaction => transaction.id !== id);
+    updateLocalStorage();
+    init();
+}
 
 // Add transactions to DOM list
 function addTransactionDOM(transaction) {
@@ -29,7 +60,7 @@ function addTransactionDOM(transaction) {
   item.innerHTML = `
         ${transaction.text} <span>${sign}${Math.abs(
     transaction.amount
-  )}</span> <button class="delete-btn">x</button>
+  )}</span> <button class="delete-btn" onclick="removeTransaction(${transaction.id})">x</button>
     `;
 
   // Adding to DOM
@@ -60,6 +91,11 @@ function counter() {
   balance.innerText = `$${total}`;
 }
 
+// Update local storage transactions
+function updateLocalStorage() {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+}
+
 // Init app
 function init() {
   list.innerHTML = "";
@@ -68,3 +104,6 @@ function init() {
 }
 
 init();
+
+// Event listeners
+form.addEventListener('submit', addTransaction);
